@@ -3,4 +3,4 @@ import { render } from 'react-dom';
 
 import SpotContainer from './SpotContainer';
 
-render(<SpotContainer />, document.getElementById('main'));
+render(<SpotContainer edgeSize={7} />, document.getElementById('main'));
