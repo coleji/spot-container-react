@@ -59,8 +59,7 @@ function playerForStartingBoard(edgeSize: number, row: number, col: number) {
 
 const WHO_GOES_FIRST = Player.P1
 
-const hi = wasm_bindgen.hello_world("jon")
-console.log(hi)
+
 
 export default class SpotContainer extends React.Component<Props> {
 	state: {
@@ -193,6 +192,8 @@ export default class SpotContainer extends React.Component<Props> {
 			}
 		case OwnerRole.NoOne:
 			return () => {
+				const hi = wasm_bindgen.hello_world("player")
+				console.log(hi)
 				if (this.state.highlightedRow.isNone() || this.state.highlightedCol.isNone()) return;
 				else {
 					const highlightedRow = this.state.highlightedRow.getOrElse(null);
