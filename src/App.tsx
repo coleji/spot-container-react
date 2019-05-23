@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { render } from 'react-dom';
 
-import SpotContainer from './SpotContainer';
+import SpotContainer, { PlayMode } from './SpotContainer';
 
-render(<SpotContainer edgeSize={7} />, document.getElementById('main'));
+render(<SpotContainer edgeSize={7} playMode={PlayMode.MP}/>, document.getElementById('main'));
