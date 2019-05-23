@@ -3,4 +3,4 @@ import { render } from 'react-dom';
 
 import SpotContainer, { PlayMode } from './SpotContainer';
 
-render(<SpotContainer edgeSize={7} playMode={PlayMode.MP}/>, document.getElementById('main'));
+render(<SpotContainer edgeSize={7} playMode={PlayMode.SP}/>, document.getElementById('main'));

@@ -86,6 +86,9 @@ export default class SpotContainer extends React.Component<Props> {
 			turn: WHO_GOES_FIRST
 		}
 	}
+	toString() {
+		return this.state.board.map(rows => rows.join("")).join(":")
+	}
 	highlight(row: number, col: number) {
 		console.log("highlight!")
 		this.setState({
@@ -103,7 +106,8 @@ export default class SpotContainer extends React.Component<Props> {
 		})
 	}
 	callAI() {
-		
+		const nextBoard = wasm_bindgen.calc_next_move(this.toString())
+		console.log(nextBoard)
 	}
 	take(takeRow: number, takeCol: number) {
 		// First take the one square...
@@ -120,6 +124,7 @@ export default class SpotContainer extends React.Component<Props> {
 			highlightedRow: none,
 			highlightedCol: none
 		})
+		if (this.props.playMode == PlayMode.SP) this.callAI()
 	}
 	jump(jumpRow: number, jumpCol: number) {
 		// First take the one square...
@@ -137,6 +142,7 @@ export default class SpotContainer extends React.Component<Props> {
 			highlightedRow: none,
 			highlightedCol: none
 		})
+		if (this.props.playMode == PlayMode.SP) this.callAI()
 	}
 	// Given a board and a square that was just moved into, convert all the squares around it to its color
 	static doWololo(start: Player[][], startRow: number, startCol: number): Player[][] {
@@ -212,7 +218,6 @@ export default class SpotContainer extends React.Component<Props> {
 		}
 	}
 	render() {
-		this.callAI()
 		const self = this
 		const rows = this.state.board.map((cols, row) => (
 			<tr key={row}>
