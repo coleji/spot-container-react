@@ -59,6 +59,9 @@ function playerForStartingBoard(edgeSize: number, row: number, col: number) {
 
 const WHO_GOES_FIRST = Player.P1
 
+const hi = wasm_bindgen.hello_world("jon")
+console.log(hi)
+
 export default class SpotContainer extends React.Component<Props> {
 	state: {
 		board: Player[][],
@@ -99,6 +102,9 @@ export default class SpotContainer extends React.Component<Props> {
 			highlightedRow: none,
 			highlightedCol: none
 		})
+	}
+	callAI() {
+		
 	}
 	take(takeRow: number, takeCol: number) {
 		// First take the one square...
@@ -205,6 +211,7 @@ export default class SpotContainer extends React.Component<Props> {
 		}
 	}
 	render() {
+		this.callAI()
 		const self = this
 		const rows = this.state.board.map((cols, row) => (
 			<tr key={row}>
