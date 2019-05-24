@@ -215,7 +215,7 @@ export default class SpotContainer extends React.Component<Props> {
 							highlightedRow: none,
 							highlightedCol: none
 						})
-						if (this.props.playMode == PlayMode.SP) window.setTimeout(() => this.callAI(), 0)
+						if (this.props.playMode == PlayMode.SP) window.setTimeout(() => this.callAI(), 200)
 					} else if (SpotContainer.inJumpRange(highlightedRow, highlightedCol, row, col)) {
 						console.log("can jump!")
 						this.setState({
@@ -225,7 +225,7 @@ export default class SpotContainer extends React.Component<Props> {
 							highlightedRow: none,
 							highlightedCol: none
 						})
-						if (this.props.playMode == PlayMode.SP) window.setTimeout(() => this.callAI(), 0)
+						if (this.props.playMode == PlayMode.SP) window.setTimeout(() => this.callAI(), 200)
 					} else {
 						console.log("cant move there....")
 					}
