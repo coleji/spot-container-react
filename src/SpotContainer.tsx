@@ -106,43 +106,45 @@ export default class SpotContainer extends React.Component<Props> {
 		})
 	}
 	callAI() {
-		const nextBoard = wasm_bindgen.calc_next_move(this.toString())
-		console.log(nextBoard)
-	}
-	take(takeRow: number, takeCol: number) {
-		// First take the one square...
-		const afterTake = this.state.board.map((cols, row) => cols.map((p, col) => {
-			if (row == takeRow && col == takeCol) return this.state.turn
-			else return this.state.board[row][col]
-		}))
-		// then wololo its neighbors
-		const afterWololo = SpotContainer.doWololo(afterTake, takeRow, takeCol)
+		console.log(this.state)
+		const self = this
+		const aiMove = wasm_bindgen.calc_next_move(this.toString())
+		const regex = /(\d),(\d)>(\d),(\d)/
+		const [dontCare, fromRow, fromCol, toRow, toCol] = regex.exec(aiMove).map(Number)
+		const newBoard = (function() {
+			if (SpotContainer.inTakeRange(fromRow, fromCol, toRow, toCol)) {
+				return SpotContainer.take(self.state.board, fromRow, fromCol, toRow, toCol)
+			} else {
+				return SpotContainer.jump(self.state.board, fromRow, fromCol, toRow, toCol)
+			}
+		}());
 		this.setState({
-			...this.state,
-			board: afterWololo,
+			board: newBoard,
 			turn: invertPlayer(this.state.turn),
 			highlightedRow: none,
 			highlightedCol: none
 		})
-		if (this.props.playMode == PlayMode.SP) this.callAI()
 	}
-	jump(jumpRow: number, jumpCol: number) {
+	static take(board: Player[][], fromRow: number, fromCol: number, takeRow: number, takeCol: number): Player[][] {
 		// First take the one square...
-		const afterJump = this.state.board.map((cols, row) => cols.map((p, col) => {
-			if (row == jumpRow && col == jumpCol) return this.state.turn
-			else if (row == this.state.highlightedRow.getOrElse(null) && col == this.state.highlightedCol.getOrElse(null)) return Player.NoOne
-			else return this.state.board[row][col]
+		const movingPlayer = board[fromRow][fromCol]
+		const afterTake = board.map((cols, row) => cols.map((p, col) => {
+			if (row == takeRow && col == takeCol) return movingPlayer
+			else return board[row][col]
 		}))
 		// then wololo its neighbors
-		const afterWololo = SpotContainer.doWololo(afterJump, jumpRow, jumpCol)
-		this.setState({
-			...this.state,
-			board: afterWololo,
-			turn: invertPlayer(this.state.turn),
-			highlightedRow: none,
-			highlightedCol: none
-		})
-		if (this.props.playMode == PlayMode.SP) this.callAI()
+		return SpotContainer.doWololo(afterTake, takeRow, takeCol)
+	}
+	static jump(board: Player[][], fromRow: number, fromCol: number, jumpRow: number, jumpCol: number) {
+		// First take the one square...
+		const movingPlayer = board[fromRow][fromCol]
+		const afterJump = board.map((cols, row) => cols.map((p, col) => {
+			if (row == jumpRow && col == jumpCol) return movingPlayer
+			else if (row == fromRow && col == fromCol) return Player.NoOne
+			else return board[row][col]
+		}))
+		// then wololo its neighbors
+		return SpotContainer.doWololo(afterJump, jumpRow, jumpCol)
 	}
 	// Given a board and a square that was just moved into, convert all the squares around it to its color
 	static doWololo(start: Player[][], startRow: number, startCol: number): Player[][] {
@@ -206,10 +208,24 @@ export default class SpotContainer extends React.Component<Props> {
 					const highlightedCol = this.state.highlightedCol.getOrElse(null)
 					if (SpotContainer.inTakeRange(highlightedRow, highlightedCol, row, col)) {
 						console.log("can take!")
-						this.take(row, col)
+						this.setState({
+							...this.state,
+							board: SpotContainer.take(this.state.board, this.state.highlightedRow.getOrElse(null), this.state.highlightedCol.getOrElse(null), row, col),
+							turn: invertPlayer(this.state.turn),
+							highlightedRow: none,
+							highlightedCol: none
+						})
+						if (this.props.playMode == PlayMode.SP) window.setTimeout(() => this.callAI(), 0)
 					} else if (SpotContainer.inJumpRange(highlightedRow, highlightedCol, row, col)) {
 						console.log("can jump!")
-						this.jump(row, col)
+						this.setState({
+							...this.state,
+							board: SpotContainer.jump(this.state.board, this.state.highlightedRow.getOrElse(null), this.state.highlightedCol.getOrElse(null), row, col),
+							turn: invertPlayer(this.state.turn),
+							highlightedRow: none,
+							highlightedCol: none
+						})
+						if (this.props.playMode == PlayMode.SP) window.setTimeout(() => this.callAI(), 0)
 					} else {
 						console.log("cant move there....")
 					}
