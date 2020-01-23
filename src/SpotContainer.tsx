@@ -27,11 +27,6 @@ export enum PlayMode {
 	MP
 }
 
-interface Props {
-	edgeSize: number,
-	playMode: PlayMode
-}
-
 function getColor(player: Player, isHighlighted: boolean) {
 	switch (player) {
 		case Player.NoOne:
@@ -59,15 +54,19 @@ function playerForStartingBoard(edgeSize: number, row: number, col: number) {
 
 const WHO_GOES_FIRST = Player.P1
 
+interface Props {
+	edgeSize: number,
+	playMode: PlayMode
+}
 
+type State = {
+	board: Player[][],
+	highlightedRow: Option<number>,
+	highlightedCol: Option<number>,
+	turn: Player
+}
 
-export default class SpotContainer extends React.Component<Props> {
-	state: {
-		board: Player[][],
-		highlightedRow: Option<number>,
-		highlightedCol: Option<number>,
-		turn: Player
-	}
+export default class SpotContainer extends React.Component<Props, State> {
 	constructor(props: Props) {
 		super(props)
 		let board: Player[][] = []
