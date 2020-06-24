@@ -1,9 +1,6 @@
 import * as React from 'react';
 import { Option, some, none } from "fp-ts/lib/Option"
-
-declare const wasm_bindgen: any;
-
-wasm_bindgen("./spot_rust_bg.wasm")
+import { getWasmBindgen } from './App';
 
 enum Player {
 	P1 = 1,
@@ -11,15 +8,12 @@ enum Player {
 	NoOne = 0
 }
 
-function invertPlayer(p: Player): Player {
-	switch(p){
-	case Player.P1:
-		return Player.P2
-	case Player.P2:
-		return Player.P1
-	case Player.NoOne:
-		return Player.NoOne
-	}
+const WHO_GOES_FIRST = Player.P1
+
+function parsePlayer(s: string): Player {
+	if (s == Player.P1.toString()) return Player.P1;
+	else if (s == Player.P2.toString()) return Player.P2;
+	else return Player.NoOne;
 }
 
 export enum PlayMode {
@@ -38,21 +32,10 @@ function getColor(player: Player, isHighlighted: boolean) {
 	}
 }
 
-function playerForStartingBoard(edgeSize: number, row: number, col: number) {
-	const topLeft = Player.P1
-	const topRight = Player.P2
-	if (row == 0) {
-		if (col == 0) return topLeft
-		else if (col == edgeSize-1) return topRight
-		else return Player.NoOne
-	} else if (row == edgeSize-1) {
-		if (col == 0) return topRight
-		else if (col == edgeSize-1) return topLeft
-		else return Player.NoOne
-	} else return Player.NoOne
+function parseBoard(boardString: string): Player[][] {
+	const rows = boardString.split(":")
+	return rows.map(row => row.split("").map(parsePlayer))
 }
-
-const WHO_GOES_FIRST = Player.P1
 
 interface Props {
 	edgeSize: number,
@@ -68,18 +51,9 @@ type State = {
 
 export default class SpotContainer extends React.Component<Props, State> {
 	constructor(props: Props) {
-		super(props)
-		let board: Player[][] = []
-		for (let i = 0; i < props.edgeSize; i++) {
-			let row: Player[] = []
-			for (let j = 0; j < props.edgeSize; j++) {
-				row.push(playerForStartingBoard(props.edgeSize, i, j))
-			}
-			board.push(row)
-		}
-		console.log(board)
+		super(props);
 		this.state = {
-			board,
+			board: parseBoard(getWasmBindgen().new_board(props.edgeSize)),
 			highlightedRow: none,
 			highlightedCol: none,
 			turn: WHO_GOES_FIRST
@@ -105,9 +79,8 @@ export default class SpotContainer extends React.Component<Props, State> {
 		})
 	}
 	callAI() {
-		console.log(this.state)
 		const self = this
-		const aiMove = wasm_bindgen.calc_next_move(this.toString())
+		const aiMove = getWasmBindgen().calc_next_move(this.toString())
 		const regex = /(\d),(\d)>(\d),(\d)/
 		const [dontCare, fromRow, fromCol, toRow, toCol] = regex.exec(aiMove).map(Number)
 		const newBoard = (function() {
@@ -119,10 +92,13 @@ export default class SpotContainer extends React.Component<Props, State> {
 		}());
 		this.setState({
 			board: newBoard,
-			turn: invertPlayer(this.state.turn),
+			turn: SpotContainer.invertPlayer(this.state.turn),
 			highlightedRow: none,
 			highlightedCol: none
 		})
+	}
+	static invertPlayer(p: Player): Player {
+		return parsePlayer(getWasmBindgen().invert_player(p.toString()));
 	}
 	static take(board: Player[][], fromRow: number, fromCol: number, takeRow: number, takeCol: number): Player[][] {
 		// First take the one square...
@@ -149,7 +125,7 @@ export default class SpotContainer extends React.Component<Props, State> {
 	static doWololo(start: Player[][], startRow: number, startCol: number): Player[][] {
 		const movedPlayer = start[startRow][startCol]
 		return start.map((cols, row) => cols.map((p, col)  => {
-			if (Math.abs(row - startRow) <= 1 && Math.abs(col - startCol) <= 1 && start[row][col] == invertPlayer(movedPlayer)) return movedPlayer;
+			if (Math.abs(row - startRow) <= 1 && Math.abs(col - startCol) <= 1 && start[row][col] == SpotContainer.invertPlayer(movedPlayer)) return movedPlayer;
 			else return start[row][col]
 		}))
 	}
@@ -184,7 +160,6 @@ export default class SpotContainer extends React.Component<Props, State> {
 			else if (realOwner == self.state.turn) return OwnerRole.Me
 			else return OwnerRole.Opp
 		}());
-		console.log(realOwner + " -> " + owner)
 
 		switch (owner) {
 		case OwnerRole.Opp:
@@ -199,8 +174,6 @@ export default class SpotContainer extends React.Component<Props, State> {
 			}
 		case OwnerRole.NoOne:
 			return () => {
-				const hi = wasm_bindgen.hello_world("player")
-				console.log(hi)
 				if (this.state.highlightedRow.isNone() || this.state.highlightedCol.isNone()) return;
 				else {
 					const highlightedRow = this.state.highlightedRow.getOrElse(null);
@@ -210,7 +183,7 @@ export default class SpotContainer extends React.Component<Props, State> {
 						this.setState({
 							...this.state,
 							board: SpotContainer.take(this.state.board, this.state.highlightedRow.getOrElse(null), this.state.highlightedCol.getOrElse(null), row, col),
-							turn: invertPlayer(this.state.turn),
+							turn: SpotContainer.invertPlayer(this.state.turn),
 							highlightedRow: none,
 							highlightedCol: none
 						})
@@ -220,7 +193,7 @@ export default class SpotContainer extends React.Component<Props, State> {
 						this.setState({
 							...this.state,
 							board: SpotContainer.jump(this.state.board, this.state.highlightedRow.getOrElse(null), this.state.highlightedCol.getOrElse(null), row, col),
-							turn: invertPlayer(this.state.turn),
+							turn: SpotContainer.invertPlayer(this.state.turn),
 							highlightedRow: none,
 							highlightedCol: none
 						})
