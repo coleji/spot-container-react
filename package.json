@@ -9,7 +9,7 @@
   },
   "scripts": {
     "build": "webpack --env.platform=web",
-    "start": "nodejs dist/js/server.js",
+    "start": "node dist/js/server.js",
     "buildtest": "tsc",
     "test": "mocha --require ts-node/register lib/**/*.ts test/**/*.ts"
   },
