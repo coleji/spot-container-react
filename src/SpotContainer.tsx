@@ -82,7 +82,7 @@ export default class SpotContainer extends React.Component<Props, State> {
 		const self = this
 		const aiMove = getWasmBindgen().calc_next_move(this.toString())
 		const regex = /(\d),(\d)>(\d),(\d)/
-		const [dontCare, fromRow, fromCol, toRow, toCol] = (regex.exec(aiMove) as any).map(Number)
+		const [_, fromRow, fromCol, toRow, toCol] = (regex.exec(aiMove) as any).map(Number)
 		const newBoard = (function() {
 			if (SpotContainer.inTakeRange(fromRow, fromCol, toRow, toCol)) {
 				return SpotContainer.take(self.state.board, fromRow, fromCol, toRow, toCol)
@@ -103,7 +103,7 @@ export default class SpotContainer extends React.Component<Props, State> {
 	static take(board: Player[][], fromRow: number, fromCol: number, takeRow: number, takeCol: number): Player[][] {
 		// First take the one square...
 		const movingPlayer = board[fromRow][fromCol]
-		const afterTake = board.map((cols, row) => cols.map((p, col) => {
+		const afterTake = board.map((cols, row) => cols.map((_, col) => {
 			if (row == takeRow && col == takeCol) return movingPlayer
 			else return board[row][col]
 		}))
@@ -113,7 +113,7 @@ export default class SpotContainer extends React.Component<Props, State> {
 	static jump(board: Player[][], fromRow: number, fromCol: number, jumpRow: number, jumpCol: number) {
 		// First take the one square...
 		const movingPlayer = board[fromRow][fromCol]
-		const afterJump = board.map((cols, row) => cols.map((p, col) => {
+		const afterJump = board.map((cols, row) => cols.map((_, col) => {
 			if (row == jumpRow && col == jumpCol) return movingPlayer
 			else if (row == fromRow && col == fromCol) return Player.NoOne
 			else return board[row][col]
@@ -124,7 +124,7 @@ export default class SpotContainer extends React.Component<Props, State> {
 	// Given a board and a square that was just moved into, convert all the squares around it to its color
 	static doWololo(start: Player[][], startRow: number, startCol: number): Player[][] {
 		const movedPlayer = start[startRow][startCol]
-		return start.map((cols, row) => cols.map((p, col)  => {
+		return start.map((cols, row) => cols.map((_, col)  => {
 			if (Math.abs(row - startRow) <= 1 && Math.abs(col - startCol) <= 1 && start[row][col] == SpotContainer.invertPlayer(movedPlayer)) return movedPlayer;
 			else return start[row][col]
 		}))
