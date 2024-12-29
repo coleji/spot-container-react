@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Option, some, none } from "fp-ts/lib/Option"
-import { getWasmBindgen } from './App';
+import { getWasmBindgen } from './main';
 
 enum Player {
 	P1 = 1,
@@ -82,7 +82,7 @@ export default class SpotContainer extends React.Component<Props, State> {
 		const self = this
 		const aiMove = getWasmBindgen().calc_next_move(this.toString())
 		const regex = /(\d),(\d)>(\d),(\d)/
-		const [dontCare, fromRow, fromCol, toRow, toCol] = regex.exec(aiMove).map(Number)
+		const [dontCare, fromRow, fromCol, toRow, toCol] = (regex.exec(aiMove) as any).map(Number)
 		const newBoard = (function() {
 			if (SpotContainer.inTakeRange(fromRow, fromCol, toRow, toCol)) {
 				return SpotContainer.take(self.state.board, fromRow, fromCol, toRow, toCol)
@@ -167,7 +167,7 @@ export default class SpotContainer extends React.Component<Props, State> {
 				console.log("opp owns that...")
 			};
 		case OwnerRole.Me:
-			if (this.state.highlightedRow.getOrElse(null) == row && this.state.highlightedCol.getOrElse(null) == col) return () => this.unhighlight()
+			if (this.state.highlightedRow.getOrElse(-1) == row && this.state.highlightedCol.getOrElse(-1) == col) return () => this.unhighlight()
 			else return () => {
 				console.log("clicked row=" + row + "  col=" + col)
 				this.highlight(row, col)
@@ -176,13 +176,13 @@ export default class SpotContainer extends React.Component<Props, State> {
 			return () => {
 				if (this.state.highlightedRow.isNone() || this.state.highlightedCol.isNone()) return;
 				else {
-					const highlightedRow = this.state.highlightedRow.getOrElse(null);
-					const highlightedCol = this.state.highlightedCol.getOrElse(null)
+					const highlightedRow = this.state.highlightedRow.getOrElse(-1);
+					const highlightedCol = this.state.highlightedCol.getOrElse(-1)
 					if (SpotContainer.inTakeRange(highlightedRow, highlightedCol, row, col)) {
 						console.log("can take!")
 						this.setState({
 							...this.state,
-							board: SpotContainer.take(this.state.board, this.state.highlightedRow.getOrElse(null), this.state.highlightedCol.getOrElse(null), row, col),
+							board: SpotContainer.take(this.state.board, this.state.highlightedRow.getOrElse(-1), this.state.highlightedCol.getOrElse(-1), row, col),
 							turn: SpotContainer.invertPlayer(this.state.turn),
 							highlightedRow: none,
 							highlightedCol: none
@@ -192,7 +192,7 @@ export default class SpotContainer extends React.Component<Props, State> {
 						console.log("can jump!")
 						this.setState({
 							...this.state,
-							board: SpotContainer.jump(this.state.board, this.state.highlightedRow.getOrElse(null), this.state.highlightedCol.getOrElse(null), row, col),
+							board: SpotContainer.jump(this.state.board, this.state.highlightedRow.getOrElse(-1), this.state.highlightedCol.getOrElse(-1), row, col),
 							turn: SpotContainer.invertPlayer(this.state.turn),
 							highlightedRow: none,
 							highlightedCol: none
